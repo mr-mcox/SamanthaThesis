@@ -2,6 +2,7 @@ from SamanthaThesis.process import Processor
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
 import pytest
+import numpy as np
 
 
 @pytest.fixture
@@ -41,7 +42,7 @@ def test_regular_dimension(mock_question_key, mock_resp):
 
     p = Processor(question_key=mock_question_key, survey_results=mock_resp)
 
-    assert_frame_equal(p.dimension_values, exp_df)
+    assert_frame_equal(p.dimension_values.loc[:, exp_df.columns], exp_df)
 
 
 def test_dimension_key(mock_question_key):
@@ -57,3 +58,18 @@ def test_dimension_key(mock_question_key):
     proc = Processor(question_key=mock_question_key)
 
     assert_frame_equal(proc.dimension_key, exp_df)
+
+
+def test_dimension_bins(mock_question_key, mock_resp, monkeypatch):
+    exp_c = ['Entry Id', 'dimension_code', 'bin']
+    exp_r = [(1, 'QC1', "1-2"), (2, 'QC1', "2-3")]
+    exp_df = pd.DataFrame.from_records(
+        exp_r, columns=exp_c).set_index('Entry Id')
+
+    def mock_percentile(a, q):
+        return np.array([1, 2, 3, 4, 5])
+
+    monkeypatch.setattr(np, 'percentile', mock_percentile)
+    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+
+    assert_frame_equal(p.dimension_values.loc[:, exp_df.columns], exp_df)

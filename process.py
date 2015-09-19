@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def import_if_excel(source):
@@ -6,6 +7,13 @@ def import_if_excel(source):
         return pd.read_excel(source, 0)
     else:
         return source
+
+
+def bin_text(bin_num, ptiles):
+    if bin_num >= len(ptiles):
+        return str(ptiles[-2]) + "-" + str(ptiles[-1])
+    else:
+        return str(ptiles[bin_num-1]) + "-" + str(ptiles[bin_num])
 
 
 class Processor(object):
@@ -34,7 +42,14 @@ class Processor(object):
             dim_values.rename(
                 columns={'analysis_code': 'dimension_code'}, inplace=True)
 
-            cols = ['dimension_code', 'value']
+            # Set up bins
+            ptile = np.percentile(
+                dim_values.value, [x*20 for x in range(6)])
+            dim_values.loc[:, 'bin_num'] = np.digitize(dim_values.value, ptile)
+            dim_values.loc[:, 'bin'] = dim_values.bin_num.apply(
+                bin_text, ptiles=ptile)
+
+            cols = ['dimension_code', 'value', 'bin']
             self._dimension_values = dim_values.ix[:, cols]
         return self._dimension_values
 
@@ -58,6 +73,6 @@ class Processor(object):
             dims.loc[dims.group.isin(dims_overlapping), 'type'] = 'overlapping'
 
             cols = ['dimension_code', 'text', 'group', 'type']
-            self._dimension_key = dims.ix[:,cols].set_index('dimension_code')
+            self._dimension_key = dims.ix[:, cols].set_index('dimension_code')
 
         return self._dimension_key
