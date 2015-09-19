@@ -4,7 +4,8 @@
 		{
 			"cmd":
 			[
-				"py.test"
+				"bin/py.test",
+				"tests/"
 			],
 			"env":
 			{
