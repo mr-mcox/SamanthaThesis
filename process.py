@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pdb
 
 
 def import_if_excel(source):
@@ -42,12 +43,16 @@ class Processor(object):
             dim_values.rename(
                 columns={'analysis_code': 'dimension_code'}, inplace=True)
 
-            # Set up bins
-            ptile = np.percentile(
-                dim_values.value, [x*20 for x in range(6)])
-            dim_values.loc[:, 'bin_num'] = np.digitize(dim_values.value, ptile)
-            dim_values.loc[:, 'bin'] = dim_values.bin_num.apply(
-                bin_text, ptiles=ptile)
+            # Set up bins for each dimension code
+            dim_codes = dim_values.dimension_code.unique()
+            for code in dim_codes:
+                code_mask = (dim_values.dimension_code==code)
+                values = dim_values.loc[code_mask,'value']
+                ptile = np.percentile(values, [x*20 for x in range(6)])
+                bin_nums = pd.Series(np.digitize(values, ptile), index=values.index)
+                dim_values.loc[code_mask, 'bin'] = bin_nums.apply(
+                    bin_text, ptiles=ptile)
+                # pdb.set_trace()
 
             cols = ['dimension_code', 'value', 'bin']
             self._dimension_values = dim_values.ix[:, cols]
