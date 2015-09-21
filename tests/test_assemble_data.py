@@ -104,10 +104,10 @@ def test_multiple_dimension_bins(mock_complex_dim_question_key,
                                  mock_complex_dim_resp,
                                  monkeypatch):
     exp_c = ['Entry Id', 'dimension_code', 'bin']
-    exp_r = [(1, 'QC1', "1-2"), 
-                (2, 'QC1', "2-3"),
-                (1, 'QC2', "10-20"), 
-                (2, 'QC2', "20-30")]
+    exp_r = [(1, 'QC1', "1-2"),
+             (2, 'QC1', "2-3"),
+             (1, 'QC2', "10-20"),
+             (2, 'QC2', "20-30")]
     exp_df = pd.DataFrame.from_records(
         exp_r, columns=exp_c).set_index('Entry Id')
 
@@ -121,6 +121,31 @@ def test_multiple_dimension_bins(mock_complex_dim_question_key,
 
     monkeypatch.setattr(np, 'percentile', mock_percentile)
     proc = Processor(question_key=mock_complex_dim_question_key,
-                  survey_results=mock_complex_dim_resp)
+                     survey_results=mock_complex_dim_resp)
 
     assert_frame_equal(proc.dimension_values.loc[:, exp_df.columns], exp_df)
+
+
+@pytest.fixture
+def resp_for_overlapping_dim():
+    resp_c = ['Entry Id', 'Q1', 'Q3']
+    resp_r = [
+        (1, 1, 1),
+        (2, 2, 0),
+    ]
+
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
+
+
+def test_overlapping_dim_indicator_variable(mock_question_key,
+                                            resp_for_overlapping_dim,
+                                            monkeypatch):
+
+    res = Processor(question_key=mock_question_key,
+                    survey_results=resp_for_overlapping_dim).dimension_values
+
+    res = res.reset_index().set_index(
+        ['Entry Id', 'dimension_code'])
+
+    assert res.loc[(1, 'QC3'), 'bin'] == 'QC3'
+    assert np.isnan(res.loc[(2, 'QC3'), 'bin'])

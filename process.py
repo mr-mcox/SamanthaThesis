@@ -48,14 +48,19 @@ class Processor(object):
             for code in dim_codes:
                 code_mask = (dim_values.dimension_code == code)
                 values = dim_values.loc[code_mask, 'value']
-                if values.map(np.isreal).all():
-                    ptile = np.percentile(values, [x*20 for x in range(6)])
-                    bin_nums = pd.Series(
-                        np.digitize(values, ptile), index=values.index)
-                    dim_values.loc[code_mask, 'bin'] = bin_nums.apply(
-                        bin_text, ptiles=ptile)
+                if self.dimension_key.get_value(code, 'type') == 'overlapping':
+                    indicator_v = pd.Series(index=values.index)
+                    indicator_v.loc[values.notnull() & (values != 0)] = code
+                    dim_values.loc[code_mask, 'bin'] = indicator_v
                 else:
-                    dim_values.loc[code_mask, 'bin'] = dim_values.value
+                    if values.map(np.isreal).all():
+                        ptile = np.percentile(values, [x*20 for x in range(6)])
+                        bin_nums = pd.Series(
+                            np.digitize(values, ptile), index=values.index)
+                        dim_values.loc[code_mask, 'bin'] = bin_nums.apply(
+                            bin_text, ptiles=ptile)
+                    else:
+                        dim_values.loc[code_mask, 'bin'] = dim_values.value
 
             cols = ['dimension_code', 'value', 'bin']
             self._dimension_values = dim_values.ix[:, cols]

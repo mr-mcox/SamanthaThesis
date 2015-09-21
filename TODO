@@ -1,0 +1,10 @@
+ ☐ Create responses file
+ ☐ Create signficance_of_relationship stub
+ ☐ Create significant_dimension_relationship_list in GroupAnalysis
+ ☐ Processor dimensions_in_group
+ ☐ Processor results_in_group
+ ☐ Processor result_entries(code)
+ ☐ Processor dimension_entries(code)
+ ☐ Analyzer signficance_of_relationship(dim_code,res_code, Processor)
+ ☐ Visualizer creates histogram chart based on output
+ ☐ Aggregator distribution_by_dimension(dim_code, res_code) - groups by dim value and % for each result by dimension value and overall
