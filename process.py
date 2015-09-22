@@ -103,3 +103,60 @@ class Processor(object):
             columns = ['question_code', 'value']
             self._response_values = res_qs.loc[:, columns]
         return self._response_values
+
+    def dimensions_in_group(self, group):
+        pass
+
+    def questions_in_group(self, group):
+        pass
+
+
+class GroupAnalysis(object):
+
+    """"Analyzes groups of responses and dimensions"""
+
+    def __init__(self, processor=None):
+        self.processor = processor
+        self.alpha = 0.05
+
+    def significant_relationships_list(self, d_group, q_group):
+        alpha = self.alpha
+        dims = self.processor.dimensions_in_group(d_group)
+        qs = self.processor.questions_in_group(q_group)
+
+        dim_q_combos = list()
+        for d in dims:
+            for q in qs:
+                dim_q_combos.append((d, q))
+
+        analysis_results = list()
+
+        for combo in dim_q_combos:
+            a = Analyzer(processor=self.processor)
+            (d, q) = combo
+            p_val = a.significance_of_relationship(d, q)
+            analysis_results.append((d, q, p_val))
+
+
+        cols = ['dimension', 'question', 'p_value']
+        df = pd.DataFrame().from_records(analysis_results, columns=cols)
+
+        df.sort('p_value', inplace=True)
+        df['comp_p'] = [(x + 1) * alpha / len(df) for x in range(len(df))]
+        df['sig'] = False
+        df.loc[df.p_value <= df.comp_p, 'sig'] = True
+
+        df.set_index(['dimension', 'question'], inplace=True)
+
+        return df
+
+
+class Analyzer(object):
+
+    """"Analyzes a single question and dimension"""
+
+    def __init__(self, processor=None):
+        pass
+
+    def significance_of_relationship(self, dimension, question):
+        pass
