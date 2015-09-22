@@ -1,6 +1,6 @@
 from SamanthaThesis.process import Processor
 import pandas as pd
-from pandas.util.testing import assert_frame_equal
+from pandas.util.testing import assert_frame_equal, assert_series_equal
 import pytest
 import numpy as np
 
@@ -153,6 +153,7 @@ def test_overlapping_dim_indicator_variable(mock_question_key,
     assert res.loc[(1, 'QC3'), 'bin'] == 'QC3'
     assert np.isnan(res.loc[(2, 'QC3'), 'bin'])
 
+
 def test_regular_response(mock_question_key, mock_resp):
 
     exp_r = [(1, 'QC2', 2), (2, 'QC2', 3)]
@@ -164,11 +165,13 @@ def test_regular_response(mock_question_key, mock_resp):
 
     assert_frame_subset(p.response_values, exp_df)
 
+
 def test_dimensions_in_group(mock_question_key):
     exp = ['QC3', 'QC4']
 
     p = Processor(question_key=mock_question_key)
     assert p.dimensions_in_group('G3') == exp
+
 
 def test_questions_in_group(mock_question_key):
     exp = ['QC2']
@@ -176,3 +179,21 @@ def test_questions_in_group(mock_question_key):
     p = Processor(question_key=mock_question_key)
     assert p.questions_in_group('G2') == exp
 
+
+def test_result_entries(mock_question_key, mock_resp):
+    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+    exp = pd.Series([2, 3], index=[1, 2])
+    exp.index.rename('Entry Id', inplace=True)
+    exp.name = 'value'
+
+    assert_series_equal(p.result_entries('QC2'), exp)
+
+
+def test_dimension_entries(mock_question_key, resp_for_overlapping_dim):
+    p = Processor(
+        question_key=mock_question_key, survey_results=resp_for_overlapping_dim)
+    exp = pd.Series(['QC3', None], index=[1, 2])
+    exp.index.rename('Entry Id', inplace=True)
+    exp.name = 'bin'
+
+    assert_series_equal(p.dimension_entries('QC3'), exp)

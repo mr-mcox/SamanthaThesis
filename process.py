@@ -126,6 +126,14 @@ class Processor(object):
         qk = self.q_key
         return qk[qk.group == group].index.tolist()
 
+    def result_entries(self, code):
+        rv = self.response_values
+        return rv.ix[rv.question_code==code].value
+
+    def dimension_entries(self, code):
+        dv = self.dimension_values
+        return dv.ix[dv.dimension_code==code].bin
+
 
 class GroupAnalysis(object):
 
@@ -152,7 +160,6 @@ class GroupAnalysis(object):
             (d, q) = combo
             p_val = a.significance_of_relationship(d, q)
             analysis_results.append((d, q, p_val))
-
 
         cols = ['dimension', 'question', 'p_value']
         df = pd.DataFrame().from_records(analysis_results, columns=cols)

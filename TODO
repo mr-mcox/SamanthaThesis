@@ -3,8 +3,8 @@
  ✔ Create significant_dimension_relationship_list in GroupAnalysis @done (15-09-21 20:19)
  ✔ Processor dimensions_in_group @done (15-09-21 20:25)
  ✔ Processor results_in_group @done (15-09-21 20:30)
- ☐ Processor result_entries(code)
- ☐ Processor dimension_entries(code)
+ ✔ Processor result_entries(code) @done (15-09-21 20:40)
+ ✔ Processor dimension_entries(code) @done (15-09-21 20:50)
  ☐ Analyzer signficance_of_relationship(dim_code,res_code, Processor)
  ☐ Visualizer creates histogram chart based on output
  ☐ Aggregator distribution_by_dimension(dim_code, res_code) - groups by dim value and % for each result by dimension value and overall
