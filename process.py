@@ -91,6 +91,20 @@ class Processor(object):
         return self._dimension_key
 
     @property
+    def q_key(self):
+        if not hasattr(self, '_q_key'):
+            qk = self.question_key
+            qs = qk[qk.dimension_or_question == 'question']
+
+            qs.rename(columns={
+                'analysis_code': 'question_code',
+                'variable': 'text',
+                'question_theme': 'group'
+            }, inplace=True)
+            self._q_key = qs.set_index('question_code')
+        return self._q_key
+
+    @property
     def response_values(self):
         if not hasattr(self, '_response_values'):
             qk = self.question_key
@@ -105,10 +119,12 @@ class Processor(object):
         return self._response_values
 
     def dimensions_in_group(self, group):
-        pass
+        dk = self.dimension_key
+        return dk[dk.group == group].index.tolist()
 
     def questions_in_group(self, group):
-        pass
+        qk = self.q_key
+        return qk[qk.group == group].index.tolist()
 
 
 class GroupAnalysis(object):

@@ -163,3 +163,16 @@ def test_regular_response(mock_question_key, mock_resp):
     p = Processor(question_key=mock_question_key, survey_results=mock_resp)
 
     assert_frame_subset(p.response_values, exp_df)
+
+def test_dimensions_in_group(mock_question_key):
+    exp = ['QC3', 'QC4']
+
+    p = Processor(question_key=mock_question_key)
+    assert p.dimensions_in_group('G3') == exp
+
+def test_questions_in_group(mock_question_key):
+    exp = ['QC2']
+
+    p = Processor(question_key=mock_question_key)
+    assert p.questions_in_group('G2') == exp
+
