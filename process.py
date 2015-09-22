@@ -89,3 +89,17 @@ class Processor(object):
             self._dimension_key = dims.ix[:, cols].set_index('dimension_code')
 
         return self._dimension_key
+
+    @property
+    def response_values(self):
+        if not hasattr(self, '_response_values'):
+            qk = self.question_key
+            qs = qk[qk.dimension_or_question == 'question'].variable.tolist()
+            res_melt = pd.melt(self.survey_results, id_vars='Entry Id')
+            res_qs = res_melt[res_melt.variable.isin(qs)]
+            res_qs = pd.merge(res_qs, qk, on='variable').set_index('Entry Id')
+            res_qs.rename(
+                columns={'analysis_code': 'question_code'}, inplace=True)
+            columns = ['question_code', 'value']
+            self._response_values = res_qs.loc[:, columns]
+        return self._response_values

@@ -3,7 +3,10 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal
 import pytest
 import numpy as np
-import pdb
+
+
+def assert_frame_subset(actual, expected):
+    assert_frame_equal(actual.loc[:, expected.columns], expected)
 
 
 @pytest.fixture
@@ -67,7 +70,7 @@ def test_regular_dimension(mock_question_key, mock_resp):
 
     p = Processor(question_key=mock_question_key, survey_results=mock_resp)
 
-    assert_frame_equal(p.dimension_values.loc[:, exp_df.columns], exp_df)
+    assert_frame_subset(p.dimension_values, exp_df)
 
 
 def test_dimension_key(mock_question_key):
@@ -82,7 +85,7 @@ def test_dimension_key(mock_question_key):
 
     proc = Processor(question_key=mock_question_key)
 
-    assert_frame_equal(proc.dimension_key, exp_df)
+    assert_frame_subset(proc.dimension_key, exp_df)
 
 
 def test_single_dimension_bins(mock_question_key, mock_resp, monkeypatch):
@@ -97,7 +100,7 @@ def test_single_dimension_bins(mock_question_key, mock_resp, monkeypatch):
     monkeypatch.setattr(np, 'percentile', mock_percentile)
     p = Processor(question_key=mock_question_key, survey_results=mock_resp)
 
-    assert_frame_equal(p.dimension_values.loc[:, exp_df.columns], exp_df)
+    assert_frame_subset(p.dimension_values, exp_df)
 
 
 def test_multiple_dimension_bins(mock_complex_dim_question_key,
@@ -123,7 +126,7 @@ def test_multiple_dimension_bins(mock_complex_dim_question_key,
     proc = Processor(question_key=mock_complex_dim_question_key,
                      survey_results=mock_complex_dim_resp)
 
-    assert_frame_equal(proc.dimension_values.loc[:, exp_df.columns], exp_df)
+    assert_frame_subset(proc.dimension_values, exp_df)
 
 
 @pytest.fixture
@@ -149,3 +152,14 @@ def test_overlapping_dim_indicator_variable(mock_question_key,
 
     assert res.loc[(1, 'QC3'), 'bin'] == 'QC3'
     assert np.isnan(res.loc[(2, 'QC3'), 'bin'])
+
+def test_regular_response(mock_question_key, mock_resp):
+
+    exp_r = [(1, 'QC2', 2), (2, 'QC2', 3)]
+    exp_c = ['Entry Id', 'question_code', 'value']
+    exp_df = pd.DataFrame.from_records(
+        exp_r, columns=exp_c).set_index('Entry Id')
+
+    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+
+    assert_frame_subset(p.response_values, exp_df)
