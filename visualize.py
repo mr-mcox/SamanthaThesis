@@ -1,7 +1,5 @@
 from bokeh.plotting import figure, show, output_file, vplot
 from bokeh.models import NumeralTickFormatter
-from bokeh.charts import Area
-from unittest.mock import patch
 import os
 
 
@@ -36,8 +34,8 @@ class SurveyPlot(object):
             bar_x = [(x+1) - (prim_bar_width / 2) for x in range(len(dim_f))]
             bar_y = [h / 2 for h in dim_f]
 
-            p.rect(bar_x, bar_y, color='#3182bd', 
-                width=prim_bar_width, height=dim_f)
+            p.rect(bar_x, bar_y, color='#3182bd',
+                   width=prim_bar_width, height=dim_f)
 
             p.rect(m_bar_x, m_bar_y, color='#d9d9d9',
                    width=0.2, height=overall_f)
