@@ -180,7 +180,6 @@ def test_questions_in_group(mock_question_key):
     assert p.questions_in_group('G2') == exp
 
 
-
 def test_dimension_value_frame(mock_question_key, resp_for_overlap_dim):
 
     exp_r = [(1, 'QC3', 2), (2, None, 3)]

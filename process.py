@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from scipy.stats.mstats import kruskalwallis
 import pdb
 
 
@@ -180,7 +181,14 @@ class Analyzer(object):
     """"Analyzes a single question and dimension"""
 
     def __init__(self, processor=None):
-        pass
+        self.processor = processor
 
     def significance_of_relationship(self, dimension, question):
-        pass
+        frame = self.processor.dimension_value_frame(dimension, question)
+        factors = frame.dimension.unique().tolist()
+
+        data_sets = list()
+        for factor in factors:
+            data_sets.append(frame.ix[frame.dimension == factor, 'value'])
+
+        return kruskalwallis(*data_sets)[1]
