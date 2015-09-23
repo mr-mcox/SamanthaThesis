@@ -7,5 +7,5 @@
  ✔ Processor dimension_entries(code) @done (15-09-21 20:50)
  ✔ Processor dimension_result_frame(dim_code, res_code) @done (15-09-22 19:08)
  ✔ Analyzer signficance_of_relationship(dim_code,res_code, Processor) @done (15-09-22 19:32)
- ☐ Visualizer creates histogram chart based on output
+ ✔ Visualizer creates histogram chart based on output @done (15-09-22 20:37)
  ☐ Aggregator distribution_by_dimension(dim_code, res_code) - groups by dim value and % for each result by dimension value and overall
