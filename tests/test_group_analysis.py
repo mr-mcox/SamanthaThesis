@@ -1,4 +1,3 @@
-import pytest
 from SamanthaThesis.process import GroupAnalysis, Analyzer, Processor
 import pandas as pd
 from pandas.util.testing import assert_frame_equal

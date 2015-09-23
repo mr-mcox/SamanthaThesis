@@ -130,22 +130,22 @@ def test_multiple_dimension_bins(mock_complex_dim_question_key,
 
 
 @pytest.fixture
-def resp_for_overlapping_dim():
-    resp_c = ['Entry Id', 'Q1', 'Q3']
+def resp_for_overlap_dim():
+    resp_c = ['Entry Id', 'Q1', 'Q2', 'Q3']
     resp_r = [
-        (1, 1, 1),
-        (2, 2, 0),
+        (1, 1, 2, 1),
+        (2, 2, 3, 0),
     ]
 
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
 def test_overlapping_dim_indicator_variable(mock_question_key,
-                                            resp_for_overlapping_dim,
+                                            resp_for_overlap_dim,
                                             monkeypatch):
 
     res = Processor(question_key=mock_question_key,
-                    survey_results=resp_for_overlapping_dim).dimension_values
+                    survey_results=resp_for_overlap_dim).dimension_values
 
     res = res.reset_index().set_index(
         ['Entry Id', 'dimension_code'])
@@ -180,20 +180,15 @@ def test_questions_in_group(mock_question_key):
     assert p.questions_in_group('G2') == exp
 
 
-def test_result_entries(mock_question_key, mock_resp):
-    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
-    exp = pd.Series([2, 3], index=[1, 2])
-    exp.index.rename('Entry Id', inplace=True)
-    exp.name = 'value'
 
-    assert_series_equal(p.result_entries('QC2'), exp)
+def test_dimension_value_frame(mock_question_key, resp_for_overlap_dim):
 
+    exp_r = [(1, 'QC3', 2), (2, None, 3)]
+    exp_c = ['Entry Id', 'dimension', 'value']
+    exp_df = pd.DataFrame.from_records(
+        exp_r, columns=exp_c).set_index('Entry Id')
 
-def test_dimension_entries(mock_question_key, resp_for_overlapping_dim):
     p = Processor(
-        question_key=mock_question_key, survey_results=resp_for_overlapping_dim)
-    exp = pd.Series(['QC3', None], index=[1, 2])
-    exp.index.rename('Entry Id', inplace=True)
-    exp.name = 'bin'
+        question_key=mock_question_key, survey_results=resp_for_overlap_dim)
 
-    assert_series_equal(p.dimension_entries('QC3'), exp)
+    assert_frame_subset(p.dimension_value_frame('QC3', 'QC2'), exp_df)

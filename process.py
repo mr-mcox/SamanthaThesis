@@ -126,13 +126,14 @@ class Processor(object):
         qk = self.q_key
         return qk[qk.group == group].index.tolist()
 
-    def result_entries(self, code):
-        rv = self.response_values
-        return rv.ix[rv.question_code==code].value
-
-    def dimension_entries(self, code):
+    def dimension_value_frame(self, dim_code, q_code):
         dv = self.dimension_values
-        return dv.ix[dv.dimension_code==code].bin
+        dims = dv.ix[dv.dimension_code == dim_code].bin
+
+        rv = self.response_values
+        resp = rv.ix[rv.question_code == q_code].value
+
+        return pd.DataFrame({'dimension': dims, 'value': resp})
 
 
 class GroupAnalysis(object):
