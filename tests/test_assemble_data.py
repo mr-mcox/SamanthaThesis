@@ -1,6 +1,6 @@
 from SamanthaThesis.process import Processor
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
+from pandas.util.testing import assert_frame_equal
 import pytest
 import numpy as np
 
@@ -9,7 +9,7 @@ def assert_frame_subset(actual, expected):
     assert_frame_equal(actual.loc[:, expected.columns], expected)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock_question_key():
     question_r = [
         ("Q1", "QC1", "G1", "dimension"),
@@ -25,7 +25,7 @@ def mock_question_key():
     return pd.DataFrame.from_records(question_r, columns=question_c)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock_resp():
     resp_c = ['Entry Id', 'Q1', 'Q2']
     resp_r = [
@@ -36,7 +36,7 @@ def mock_resp():
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock_complex_dim_question_key():
     question_r = [
         ("Q1", "QC1", "G1", "dimension"),
@@ -50,7 +50,7 @@ def mock_complex_dim_question_key():
     return pd.DataFrame.from_records(question_r, columns=question_c)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock_complex_dim_resp():
     resp_c = ['Entry Id', 'Q1', 'Q2']
     resp_r = [
@@ -61,75 +61,17 @@ def mock_complex_dim_resp():
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
-def test_regular_dimension(mock_question_key, mock_resp):
-
-    exp_r = [(1, 'QC1', 1), (2, 'QC1', 2)]
-    exp_c = ['Entry Id', 'dimension_code', 'value']
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
-
-    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
-
-    assert_frame_subset(p.dimension_values, exp_df)
-
-
-def test_dimension_key(mock_question_key):
-    exp_c = ['dimension_code', 'text', 'group', 'type']
-    exp_r = [
-        ('QC1', 'Q1', 'G1', 'complete'),
-        ('QC3', 'Q3', 'G3', 'overlapping'),
-        ('QC4', 'Q4', 'G3', 'overlapping'),
+@pytest.fixture(scope='module')
+def mock_dim_response_map():
+    resp_c = ['Entry Id', 'variable', 'value', 'mapped_value']
+    resp_r = [
+        (1, "Q1", "One", 1),
     ]
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('dimension_code')
 
-    proc = Processor(question_key=mock_question_key)
-
-    assert_frame_subset(proc.dimension_key, exp_df)
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
-def test_single_dimension_bins(mock_question_key, mock_resp, monkeypatch):
-    exp_c = ['Entry Id', 'dimension_code', 'bin']
-    exp_r = [(1, 'QC1', "1-2"), (2, 'QC1', "2-3")]
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
-
-    def mock_percentile(a, q):
-        return np.array([1, 2, 3, 4, 5])
-
-    monkeypatch.setattr(np, 'percentile', mock_percentile)
-    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
-
-    assert_frame_subset(p.dimension_values, exp_df)
-
-
-def test_multiple_dimension_bins(mock_complex_dim_question_key,
-                                 mock_complex_dim_resp,
-                                 monkeypatch):
-    exp_c = ['Entry Id', 'dimension_code', 'bin']
-    exp_r = [(1, 'QC1', "1-2"),
-             (2, 'QC1', "2-3"),
-             (1, 'QC2', "10-20"),
-             (2, 'QC2', "20-30")]
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
-
-    def mock_percentile(arr, q):
-        if(arr.iloc[0] < 10):
-            print("Returned small array")
-            return np.array([1, 2, 3, 4, 5])
-        else:
-            print("Returned large array")
-            return np.array([10, 20, 30, 40, 50])
-
-    monkeypatch.setattr(np, 'percentile', mock_percentile)
-    proc = Processor(question_key=mock_complex_dim_question_key,
-                     survey_results=mock_complex_dim_resp)
-
-    assert_frame_subset(proc.dimension_values, exp_df)
-
-
-@pytest.fixture
+@pytest.fixture(scope='module')
 def resp_for_overlap_dim():
     resp_c = ['Entry Id', 'Q1', 'Q2', 'Q3']
     resp_r = [
@@ -140,96 +82,7 @@ def resp_for_overlap_dim():
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
-def test_overlapping_dim_indicator_variable(mock_question_key,
-                                            resp_for_overlap_dim,
-                                            monkeypatch):
-
-    res = Processor(question_key=mock_question_key,
-                    survey_results=resp_for_overlap_dim).dimension_values
-
-    res = res.reset_index().set_index(
-        ['Entry Id', 'dimension_code'])
-
-    assert res.loc[(1, 'QC3'), 'bin'] == 'QC3'
-    assert np.isnan(res.loc[(2, 'QC3'), 'bin'])
-
-
-def test_regular_response(mock_question_key, mock_resp):
-
-    exp_r = [(1, 'QC2', 2), (2, 'QC2', 3)]
-    exp_c = ['Entry Id', 'question_code', 'value']
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
-
-    p = Processor(question_key=mock_question_key, survey_results=mock_resp)
-
-    assert_frame_subset(p.response_values, exp_df)
-
-
-def test_dimensions_in_group(mock_question_key):
-    exp = ['QC3', 'QC4']
-
-    p = Processor(question_key=mock_question_key)
-    assert p.dimensions_in_group('G3') == exp
-
-
-def test_questions_in_group(mock_question_key):
-    exp = ['QC2']
-
-    p = Processor(question_key=mock_question_key)
-    assert p.questions_in_group('G2') == exp
-
-
-def test_dimension_value_frame(mock_question_key, resp_for_overlap_dim):
-
-    exp_r = [(1, 'QC3', 2), (2, None, 3)]
-    exp_c = ['Entry Id', 'dimension', 'value']
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
-
-    p = Processor(
-        question_key=mock_question_key, survey_results=resp_for_overlap_dim)
-
-    assert_frame_subset(p.dimension_value_frame('QC3', 'QC2'), exp_df)
-
-
-def mock_dim_value_frame(self, dim_code, q_code):
-    mock_c = ['Entry Id', 'dimension', 'value']
-    mock_r = [
-        (1, 'D1', 1),
-        (2, 'D1', 2),
-        (3, 'D1', 2),
-        (4, 'D1', 3),
-        (5, 'D2', 1),
-        (6, 'D2', 1),
-        (7, 'D2', 2),
-        (8, 'D2', 3),
-    ]
-    df = pd.DataFrame().from_records(
-        mock_r, columns=mock_c).set_index('Entry Id')
-    return df
-
-
-def test_data_for_visualizer(monkeypatch):
-    exp = {'title': 'QC2',
-           'levels': ['1', '2', '3'],
-           'overall_f': [.375, .375, 0.25],
-           'dimensions': [
-               {'name': 'D1',
-                'freq': [0.25, 0.5, 0.25]},
-               {'name': 'D2',
-                'freq': [0.5, 0.25, 0.25]}
-           ]
-           }
-    monkeypatch.setattr(
-        Processor, 'dimension_value_frame', mock_dim_value_frame)
-
-    p = Processor()
-    res = p.data_for_visualizer('QC1', 'QC2')
-    assert res == exp
-
-
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock_resp_for_pre_map():
     resp_c = ['Entry Id', 'Q1', 'Q2']
     resp_r = [
@@ -240,16 +93,7 @@ def mock_resp_for_pre_map():
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
-@pytest.fixture
-def mock_dim_response_map():
-    resp_c = ['Entry Id', 'variable', 'value', 'mapped_value']
-    resp_r = [
-        (1, "Q1", "One", 1),
-    ]
-
-    return pd.DataFrame.from_records(resp_r, columns=resp_c)
-
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock_response_map():
     resp_c = ['variable', 'value', 'numerical_value']
     resp_r = [
@@ -260,29 +104,193 @@ def mock_response_map():
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
 
 
-def test_map_values(mock_resp_for_pre_map, 
-                    mock_question_key, 
-                    mock_dim_response_map):
-    exp_r = [(1, 'QC1', 1), (2, 'QC1', 2)]
-    exp_c = ['Entry Id', 'dimension_code', 'value']
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
+class TestDimensionFormat():
 
-    p = Processor(question_key=mock_question_key,
-                  dim_response_map=mock_dim_response_map,
-                  survey_results=mock_resp_for_pre_map)
+    def test_regular_dimension(self, mock_question_key, mock_resp):
 
-    assert_frame_subset(p.dimension_values, exp_df)
+        exp_r = [(1, 'QC1', 1), (2, 'QC1', 2)]
+        exp_c = ['Entry Id', 'dimension_code', 'value']
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id')
 
-def test_mapped_response(mock_resp_for_pre_map, mock_question_key, mock_response_map):
+        p = Processor(question_key=mock_question_key, survey_results=mock_resp)
 
-    exp_r = [(1, 'QC2', 2.0), (2, 'QC2', 3.0)]
-    exp_c = ['Entry Id', 'question_code', 'value']
-    exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
+        assert_frame_subset(p.dimension_values, exp_df)
 
-    p = Processor(question_key=mock_question_key, 
-                survey_results=mock_resp_for_pre_map, 
-                response_map= mock_response_map)
+    def test_dimension_key(self, mock_question_key):
+        exp_c = ['dimension_code', 'text', 'group', 'type']
+        exp_r = [
+            ('QC1', 'Q1', 'G1', 'complete'),
+            ('QC3', 'Q3', 'G3', 'overlapping'),
+            ('QC4', 'Q4', 'G3', 'overlapping'),
+        ]
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('dimension_code')
 
-    assert_frame_subset(p.response_values, exp_df.convert_objects())
+        proc = Processor(question_key=mock_question_key)
+
+        assert_frame_subset(proc.dimension_key, exp_df)
+
+    def test_single_dimension_bins(self,
+                                   mock_question_key,
+                                   mock_resp,
+                                   monkeypatch):
+        exp_c = ['Entry Id', 'dimension_code', 'bin']
+        exp_r = [(1, 'QC1', "1-2"), (2, 'QC1', "2-3")]
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
+
+        def mock_percentile(a, q):
+            return np.array([1, 2, 3, 4, 5])
+
+        monkeypatch.setattr(np, 'percentile', mock_percentile)
+        p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+
+        assert_frame_subset(p.dimension_values, exp_df)
+
+    def test_multiple_dimension_bins(self, mock_complex_dim_question_key,
+                                     mock_complex_dim_resp,
+                                     monkeypatch):
+        exp_c = ['Entry Id', 'dimension_code', 'bin']
+        exp_r = [(1, 'QC1', "1-2"),
+                 (2, 'QC1', "2-3"),
+                 (1, 'QC2', "10-20"),
+                 (2, 'QC2', "20-30")]
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
+
+        def mock_percentile(arr, q):
+            if(arr.iloc[0] < 10):
+                print("Returned small array")
+                return np.array([1, 2, 3, 4, 5])
+            else:
+                print("Returned large array")
+                return np.array([10, 20, 30, 40, 50])
+
+        monkeypatch.setattr(np, 'percentile', mock_percentile)
+        proc = Processor(question_key=mock_complex_dim_question_key,
+                         survey_results=mock_complex_dim_resp)
+
+        assert_frame_subset(proc.dimension_values, exp_df)
+
+    def test_overlapping_dim_indicator_variable(self, mock_question_key,
+                                                resp_for_overlap_dim,
+                                                monkeypatch):
+
+        res = Processor(question_key=mock_question_key,
+                        survey_results=resp_for_overlap_dim).dimension_values
+
+        res = res.reset_index().set_index(
+            ['Entry Id', 'dimension_code'])
+
+        assert res.loc[(1, 'QC3'), 'bin'] == 'QC3'
+        assert np.isnan(res.loc[(2, 'QC3'), 'bin'])
+
+
+class TestResponseFormat():
+
+    def test_map_values(self, mock_resp_for_pre_map,
+                        mock_question_key,
+                        mock_dim_response_map):
+        exp_r = [(1, 'QC1', 1), (2, 'QC1', 2)]
+        exp_c = ['Entry Id', 'dimension_code', 'value']
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id')
+
+        p = Processor(question_key=mock_question_key,
+                      dim_response_map=mock_dim_response_map,
+                      survey_results=mock_resp_for_pre_map)
+
+        assert_frame_subset(p.dimension_values, exp_df)
+
+    def test_mapped_response(self,
+                             mock_resp_for_pre_map,
+                             mock_question_key,
+                             mock_response_map):
+
+        exp_r = [(1, 'QC2', 2.0), (2, 'QC2', 3.0)]
+        exp_c = ['Entry Id', 'question_code', 'value']
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id')
+
+        p = Processor(question_key=mock_question_key,
+                      survey_results=mock_resp_for_pre_map,
+                      response_map=mock_response_map)
+
+        assert_frame_subset(p.response_values, exp_df.convert_objects())
+
+    def test_regular_response(self, mock_question_key, mock_resp):
+
+        exp_r = [(1, 'QC2', 2), (2, 'QC2', 3)]
+        exp_c = ['Entry Id', 'question_code', 'value']
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id')
+
+        p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+
+        assert_frame_subset(p.response_values, exp_df)
+
+
+class TestOutputInterface():
+
+    def test_dimensions_in_group(self, mock_question_key):
+        exp = ['QC3', 'QC4']
+
+        p = Processor(question_key=mock_question_key)
+        assert p.dimensions_in_group('G3') == exp
+
+    def test_questions_in_group(self, mock_question_key):
+        exp = ['QC2']
+
+        p = Processor(question_key=mock_question_key)
+        assert p.questions_in_group('G2') == exp
+
+    def test_dimension_value_frame(self,
+                                   mock_question_key,
+                                   resp_for_overlap_dim):
+
+        exp_r = [(1, 'QC3', 2), (2, None, 3)]
+        exp_c = ['Entry Id', 'dimension', 'value']
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id')
+
+        p = Processor(
+            question_key=mock_question_key,
+            survey_results=resp_for_overlap_dim)
+
+        assert_frame_subset(p.dimension_value_frame('QC3', 'QC2'), exp_df)
+
+    def test_data_for_visualizer(self, monkeypatch):
+
+        def mock_dim_value_frame(self, dim_code, q_code):
+            mock_c = ['Entry Id', 'dimension', 'value']
+            mock_r = [
+                (1, 'D1', 1),
+                (2, 'D1', 2),
+                (3, 'D1', 2),
+                (4, 'D1', 3),
+                (5, 'D2', 1),
+                (6, 'D2', 1),
+                (7, 'D2', 2),
+                (8, 'D2', 3),
+            ]
+            df = pd.DataFrame().from_records(
+                mock_r, columns=mock_c).set_index('Entry Id')
+            return df
+
+        exp = {'title': 'QC2',
+               'levels': ['1', '2', '3'],
+               'overall_f': [.375, .375, 0.25],
+               'dimensions': [
+                   {'name': 'D1',
+                    'freq': [0.25, 0.5, 0.25]},
+                   {'name': 'D2',
+                    'freq': [0.5, 0.25, 0.25]}
+               ]
+               }
+        monkeypatch.setattr(
+            Processor, 'dimension_value_frame', mock_dim_value_frame)
+
+        p = Processor()
+        res = p.data_for_visualizer('QC1', 'QC2')
+        assert res == exp
