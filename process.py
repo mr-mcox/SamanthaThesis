@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from scipy.stats.mstats import kruskalwallis
+import pdb
+import re
 
 
 def import_if_excel(source):
@@ -23,10 +25,15 @@ class Processor(object):
 
     def __init__(self,
                  survey_results=None,
-                 question_key=None):
+                 question_key=None,
+                 dim_response_map=None,
+                 response_map=None,
+                 ):
 
         self.survey_results = import_if_excel(survey_results)
         self.question_key = import_if_excel(question_key)
+        self.response_map = import_if_excel(response_map)
+        self.dim_response_map = import_if_excel(dim_response_map)
 
     @property
     def dimension_values(self):
@@ -37,6 +44,14 @@ class Processor(object):
 
             res_melt = pd.melt(self.survey_results, id_vars='Entry Id')
             res_dim = res_melt[res_melt.variable.isin(dim_qs)]
+
+            # Override with mapped values if available
+            if self.dim_response_map is not None:
+                rm = self.dim_response_map.set_index(['Entry Id', 'variable'])
+                res_dim.set_index(['Entry Id', 'variable'], inplace=True)
+                res_dim.loc[res_dim.index.isin(rm.index), 'value'] = rm[
+                    'mapped_value']
+                res_dim.reset_index(inplace=True)
 
             dim_values = pd.merge(
                 res_dim, dims, on='variable').set_index('Entry Id')
@@ -53,14 +68,18 @@ class Processor(object):
                     indicator_v.loc[values.notnull() & (values != 0)] = code
                     dim_values.loc[code_mask, 'bin'] = indicator_v
                 else:
-                    if values.map(np.isreal).all():
+                    # pdb.set_trace()
+                    str_is_num = values.map(
+                        lambda s: re.search(str(s), "[\d\.]+") is None)
+                    if (str_is_num | values.isnull()).all():
+                        values = values.convert_objects(convert_numeric=True)
                         ptile = np.percentile(values, [x*20 for x in range(6)])
                         bin_nums = pd.Series(
                             np.digitize(values, ptile), index=values.index)
                         dim_values.loc[code_mask, 'bin'] = bin_nums.apply(
                             bin_text, ptiles=ptile)
                     else:
-                        dim_values.loc[code_mask, 'bin'] = dim_values.value
+                        dim_values.loc[code_mask, 'bin'] = values
 
             cols = ['dimension_code', 'value', 'bin']
             self._dimension_values = dim_values.ix[:, cols]
@@ -111,6 +130,18 @@ class Processor(object):
             qs = qk[qk.dimension_or_question == 'question'].variable.tolist()
             res_melt = pd.melt(self.survey_results, id_vars='Entry Id')
             res_qs = res_melt[res_melt.variable.isin(qs)]
+
+            # Override with mapped values if available
+            if self.response_map is not None:
+                rm = self.response_map.set_index(['variable', 'value'])
+                res_qs.set_index(['variable', 'value'], inplace=True)
+                res_qs.loc[res_qs.index.isin(rm.index), 'mapped_value'] = rm[
+                    'numerical_value']
+                res_qs.reset_index(inplace=True)
+                res_qs.loc[res_qs.mapped_value.notnull(), 'value'] = res_qs.loc[
+                    res_qs.mapped_value.notnull(), 'mapped_value']
+                res_qs = res_qs.convert_objects()
+
             res_qs = pd.merge(res_qs, qk, on='variable').set_index('Entry Id')
             res_qs.rename(
                 columns={'analysis_code': 'question_code'}, inplace=True)

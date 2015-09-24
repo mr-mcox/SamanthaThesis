@@ -92,7 +92,7 @@ def test_single_dimension_bins(mock_question_key, mock_resp, monkeypatch):
     exp_c = ['Entry Id', 'dimension_code', 'bin']
     exp_r = [(1, 'QC1', "1-2"), (2, 'QC1', "2-3")]
     exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
+        exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
 
     def mock_percentile(a, q):
         return np.array([1, 2, 3, 4, 5])
@@ -112,7 +112,7 @@ def test_multiple_dimension_bins(mock_complex_dim_question_key,
              (1, 'QC2', "10-20"),
              (2, 'QC2', "20-30")]
     exp_df = pd.DataFrame.from_records(
-        exp_r, columns=exp_c).set_index('Entry Id')
+        exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
 
     def mock_percentile(arr, q):
         if(arr.iloc[0] < 10):
@@ -227,3 +227,62 @@ def test_data_for_visualizer(monkeypatch):
     p = Processor()
     res = p.data_for_visualizer('QC1', 'QC2')
     assert res == exp
+
+
+@pytest.fixture
+def mock_resp_for_pre_map():
+    resp_c = ['Entry Id', 'Q1', 'Q2']
+    resp_r = [
+        (1, 1, "Two"),
+        (2, 2, 3),
+    ]
+
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
+
+
+@pytest.fixture
+def mock_dim_response_map():
+    resp_c = ['Entry Id', 'variable', 'value', 'mapped_value']
+    resp_r = [
+        (1, "Q1", "One", 1),
+    ]
+
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
+
+@pytest.fixture
+def mock_response_map():
+    resp_c = ['variable', 'value', 'numerical_value']
+    resp_r = [
+        ("Q2", "One", 1),
+        ("Q2", "Two", 2),
+    ]
+
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
+
+
+def test_map_values(mock_resp_for_pre_map, 
+                    mock_question_key, 
+                    mock_dim_response_map):
+    exp_r = [(1, 'QC1', 1), (2, 'QC1', 2)]
+    exp_c = ['Entry Id', 'dimension_code', 'value']
+    exp_df = pd.DataFrame.from_records(
+        exp_r, columns=exp_c).set_index('Entry Id')
+
+    p = Processor(question_key=mock_question_key,
+                  dim_response_map=mock_dim_response_map,
+                  survey_results=mock_resp_for_pre_map)
+
+    assert_frame_subset(p.dimension_values, exp_df)
+
+def test_mapped_response(mock_resp_for_pre_map, mock_question_key, mock_response_map):
+
+    exp_r = [(1, 'QC2', 2.0), (2, 'QC2', 3.0)]
+    exp_c = ['Entry Id', 'question_code', 'value']
+    exp_df = pd.DataFrame.from_records(
+        exp_r, columns=exp_c).set_index('Entry Id')
+
+    p = Processor(question_key=mock_question_key, 
+                survey_results=mock_resp_for_pre_map, 
+                response_map= mock_response_map)
+
+    assert_frame_subset(p.response_values, exp_df.convert_objects())
