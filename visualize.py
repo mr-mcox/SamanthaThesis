@@ -15,6 +15,7 @@ class SurveyPlot(object):
 
         # Set default display flags
         self.display_overall = True
+        self.display_cumulative = True
 
     def draw(self):
         data = self.data_formatted
@@ -22,12 +23,23 @@ class SurveyPlot(object):
         output_file(os.path.join(self.location, data['title'] + '.html'))
         levels = data['levels']
         plots = list()
+
+        # Set up stylings
         prim_bar_width = 0.5
-        comp_bar_width = 0.2
+        overall_bar_width = 0.2
+
+        primary_color = '#3182bd'
+        overall_color = '#d9d9d9'
+
         overall_f = data['overall_f']
-        m_bar_x = [(x+1) + (comp_bar_width / 2) for x in range(len(overall_f))]
+
+        # Overall bar positions to be used on each plot
+        m_bar_x = [(x+1) + (overall_bar_width / 2)
+                   for x in range(len(overall_f))]
         m_bar_y = [h / 2 for h in overall_f]
         for dim in data['dimensions']:
+
+            # Set up plot
             p = figure(plot_width=200,
                        plot_height=200,
                        x_range=levels,
@@ -37,18 +49,32 @@ class SurveyPlot(object):
             p.yaxis[0].formatter = NumeralTickFormatter(format="0%")
             dim_f = dim['freq']
 
+            # Compute positions for bars
             prim_bar_offset = 0
             bar_y = [h / 2 for h in dim_f]
 
+            # Compute position for line
+            line_x = [0] + levels
+
+            # Render overall bars and offset for primary
             if self.display_overall:
                 prim_bar_offset = 1 - (prim_bar_width / 2)
-                p.rect(m_bar_x, m_bar_y, color='#d9d9d9',
-                       width=0.2, height=overall_f)
+
+                if self.display_cumulative:
+                    line_y = [0] + data['overall_cum']
+                    p.line(line_x, line_y, color=overall_color)
+                p.rect(m_bar_x, m_bar_y, color=overall_color,
+                       width=overall_bar_width, height=overall_f)
+
+            # Display primary line
+            if self.display_cumulative:
+                line_y = [0] + dim['cum']
+                p.line(line_x, line_y, color=primary_color)
 
             bar_x = [x + prim_bar_offset for x in range(len(dim_f))]
 
             # Render primary bars
-            p.rect(bar_x, bar_y, color='#3182bd',
+            p.rect(bar_x, bar_y, color=primary_color,
                    width=prim_bar_width, height=dim_f)
 
             plots.append(p)
