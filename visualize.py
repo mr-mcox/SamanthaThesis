@@ -1,5 +1,6 @@
 from bokeh.plotting import figure, show, output_file, hplot
 from bokeh.models import NumeralTickFormatter
+from scipy.stats import binom
 import os
 
 
@@ -29,7 +30,8 @@ class SurveyPlot(object):
         overall_bar_width = 0.2
 
         primary_color = '#3182bd'
-        overall_color = '#d9d9d9'
+        overall_color = '#969696'
+        range_color = '#cccccc'
 
         overall_f = data['overall_f']
 
@@ -125,12 +127,18 @@ class SurveyPlot(object):
         dimensions = list()
         for dim in df.dimension.unique().tolist():
             df_d = df[df.dimension == dim]
+            pop_size = len(df_d)
             freq = self.freq_from_df(df_d, levels)
             cum = self.cumulative_frequency(freq)
+            ranges = binom.interval(0.95, pop_size, overall_cum)
+            range_low = [x / pop_size for x in ranges[0]]
+            range_high = [x / pop_size for x in ranges[1]]
             dimensions.append(
                 {'name': dim,
                  'freq': freq,
                  'cum': cum,
+                 'overall_range_low': range_low,
+                 'overall_range_high': range_high,
                  })
         output['dimensions'] = dimensions
 

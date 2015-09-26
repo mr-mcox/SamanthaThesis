@@ -4,7 +4,7 @@ Create more sophisticated visualization of data:
   ✔ Compute cumulative values for all groups @done (15-09-26 14:56)
   ✔ Display cumluative values as line (optionally) @done (15-09-26 15:14)
   ✔ Display of overall cumulative values with selection of larger group @done (15-09-26 15:14)
-  ☐ Compute binomial range for overall based on size of group
+  ✔ Compute binomial range for overall based on size of group @done (15-09-26 15:32)
   ☐ Optionally display the expected rage around each line
   ☐ Ability to change # bins
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿

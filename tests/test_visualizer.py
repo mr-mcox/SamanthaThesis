@@ -50,9 +50,13 @@ def test_data_for_visualizer(monkeypatch, input_data_frame):
            'dimensions': [
                {'name': 'D1',
                 'freq': [0.25, 0.5, 0.25],
+                'overall_range_low': [0, 0.25, 1],
+                'overall_range_high': [0.75, 1, 1],
                 'cum': [0.25, 0.75, 1]},
                {'name': 'D2',
                 'freq': [0.25, 0.25, 0.5],
+                'overall_range_low': [0, 0.25, 1],
+                'overall_range_high': [0.75, 1, 1],
                 'cum': [0.25, 0.5, 1]}
            ]
            }
@@ -71,9 +75,13 @@ def test_viz_data_with_null(monkeypatch, input_data_frame_with_null):
            'dimensions': [
                {'name': 'D1',
                 'freq': [0.25, 0.5, 0.25],
+                'overall_range_low': [0, 0.25, 1],
+                'overall_range_high': [0.75, 1, 1],
                 'cum': [0.25, 0.75, 1]},
                {'name': 'D2',
                 'freq': [0.25, 0.25, 0.5],
+                'overall_range_low': [0, 0.25, 1],
+                'overall_range_high': [0.75, 1, 1],
                 'cum': [0.25, 0.5, 1]}
            ]
            }
