@@ -7,8 +7,9 @@ class SurveyPlot(object):
 
     """Creates visualization of survey data"""
 
-    def __init__(self, data):
+    def __init__(self, data, title):
         self.data = data
+        self.title = title
         self.location = os.getcwd()
 
     def draw(self):
@@ -41,6 +42,43 @@ class SurveyPlot(object):
                    width=0.2, height=overall_f)
             plots.append(p)
         show(vplot(*plots))
+
+    def freq_from_df(self, df, levels):
+        freq = list()
+        agg = df.groupby('value').size()
+        pop_size = len(df)
+        for level in levels:
+            num_in_group = 0
+            if level in agg.index:
+                num_in_group = agg.get(level)
+            freq.append(num_in_group / pop_size)
+
+        return freq
+
+    def data_for_visualization(self):
+        df = self.data
+        output = dict()
+
+        # Set title
+        output['title'] = self.title
+
+        # Set levels
+        levels = df.value.unique().tolist()
+        level_s = [str(v) for v in levels]
+        output['levels'] = level_s
+
+        # Compute overall freq
+        output['overall_f'] = self.freq_from_df(df, levels)
+
+        # Compute dimensions
+        dimensions = list()
+        for dim in df.dimension.unique().tolist():
+            df_d = df[df.dimension == dim]
+            dimensions.append(
+                {'name': dim, 'freq': self.freq_from_df(df_d, levels)})
+        output['dimensions'] = dimensions
+
+        return output
 
 
 if __name__ == '__main__':

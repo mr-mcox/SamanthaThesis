@@ -167,43 +167,6 @@ class Processor(object):
 
         return pd.DataFrame({'dimension': dims, 'value': resp})
 
-    def freq_from_df(self, df, levels):
-        freq = list()
-        agg = df.groupby('value').size()
-        pop_size = len(df)
-        for level in levels:
-            num_in_group = 0
-            if level in agg.index:
-                num_in_group = agg.get(level)
-            freq.append(num_in_group / pop_size)
-
-        return freq
-
-    def data_for_visualizer(self, dim_code, q_code):
-        df = self.dimension_value_frame(dim_code, q_code)
-        output = dict()
-
-        # Set title
-        output['title'] = q_code
-
-        # Set levels
-        levels = df.value.unique().tolist()
-        level_s = [str(v) for v in levels]
-        output['levels'] = level_s
-
-        # Compute overall freq
-        output['overall_f'] = self.freq_from_df(df, levels)
-
-        # Compute dimensions
-        dimensions = list()
-        for dim in df.dimension.unique().tolist():
-            df_d = df[df.dimension == dim]
-            dimensions.append(
-                {'name': dim, 'freq': self.freq_from_df(df_d, levels)})
-        output['dimensions'] = dimensions
-
-        return output
-
 
 class GroupAnalysis(object):
 
