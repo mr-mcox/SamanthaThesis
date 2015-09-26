@@ -37,6 +37,17 @@ def mock_resp():
 
 
 @pytest.fixture(scope='module')
+def mock_resp_with_extremes():
+    resp_c = ['Entry Id', 'Q1', 'Q2']
+    resp_r = [
+        (1, 1, 2),
+        (2, 6, 3),
+    ]
+
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
+
+
+@pytest.fixture(scope='module')
 def mock_resp_with_blank_dim():
     resp_c = ['Entry Id', 'Q1']
     resp_r = [
@@ -149,18 +160,19 @@ class TestDimensionFormat():
 
     def test_single_dimension_bins(self,
                                    mock_question_key,
-                                   mock_resp,
+                                   mock_resp_with_extremes,
                                    monkeypatch):
         exp_c = ['Entry Id', 'dimension_code', 'bin']
-        exp_r = [(1, 'QC1', "1-2"), (2, 'QC1', "2-3")]
+        exp_r = [(1, 'QC1', "1-2"), (2, 'QC1', "5-6")]
         exp_df = pd.DataFrame.from_records(
             exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
 
         def mock_percentile(a, q):
-            return np.array([1, 2, 3, 4, 5])
+            return np.array([1, 2, 3, 4, 5, 6])
 
         monkeypatch.setattr(np, 'percentile', mock_percentile)
-        p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+        p = Processor(question_key=mock_question_key,
+                      survey_results=mock_resp_with_extremes)
 
         assert_frame_subset(p.dimension_values, exp_df)
 

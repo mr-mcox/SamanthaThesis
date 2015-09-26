@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats.mstats import kruskalwallis
 import re
+import pdb
 
 
 def import_if_excel(source):
@@ -33,6 +34,7 @@ class Processor(object):
         self.question_key = import_if_excel(question_key)
         self.response_map = import_if_excel(response_map)
         self.dim_response_map = import_if_excel(dim_response_map)
+        self.num_bins = 5
 
     @property
     def dimension_values(self):
@@ -68,12 +70,14 @@ class Processor(object):
                     indicator_v.loc[values.notnull() & (values != 0)] = code
                     dim_values.loc[code_mask, 'bin'] = indicator_v
                 else:
-                    # pdb.set_trace()
                     str_is_num = values.map(
                         lambda s: re.search(str(s), "[\d\.]+") is None)
                     if (str_is_num | values.isnull()).all():
                         values = values.convert_objects(convert_numeric=True)
-                        ptile = np.percentile(values, [x*20 for x in range(6)])
+                        bin_size = (100 / self.num_bins)
+                        ptile_num = range(self.num_bins + 1)
+                        ptile = np.percentile(
+                            values, [x*bin_size for x in ptile_num])
                         bin_nums = pd.Series(
                             np.digitize(values, ptile), index=values.index)
                         dim_values.loc[code_mask, 'bin'] = bin_nums.apply(
