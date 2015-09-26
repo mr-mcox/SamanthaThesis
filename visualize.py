@@ -13,6 +13,9 @@ class SurveyPlot(object):
         self.data_formatted = self.data_for_visualization()
         self.location = os.getcwd()
 
+        # Set default display flags
+        self.display_overall = True
+
     def draw(self):
         data = self.data_formatted
 
@@ -33,14 +36,21 @@ class SurveyPlot(object):
                        tools="")
             p.yaxis[0].formatter = NumeralTickFormatter(format="0%")
             dim_f = dim['freq']
-            bar_x = [(x+1) - (prim_bar_width / 2) for x in range(len(dim_f))]
+
+            prim_bar_offset = 0
             bar_y = [h / 2 for h in dim_f]
 
+            if self.display_overall:
+                prim_bar_offset = 1 - (prim_bar_width / 2)
+                p.rect(m_bar_x, m_bar_y, color='#d9d9d9',
+                       width=0.2, height=overall_f)
+
+            bar_x = [x + prim_bar_offset for x in range(len(dim_f))]
+
+            # Render primary bars
             p.rect(bar_x, bar_y, color='#3182bd',
                    width=prim_bar_width, height=dim_f)
 
-            p.rect(m_bar_x, m_bar_y, color='#d9d9d9',
-                   width=0.2, height=overall_f)
             plots.append(p)
         show(hplot(*plots))
 

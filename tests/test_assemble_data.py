@@ -92,7 +92,7 @@ def resp_for_overlap_dim():
     resp_c = ['Entry Id', 'Q1', 'Q2', 'Q3']
     resp_r = [
         (1, 1, 2, 1),
-        (2, 2, 3, 0),
+        (2, 2, 0, 0),
     ]
 
     return pd.DataFrame.from_records(resp_r, columns=resp_c)
@@ -287,7 +287,7 @@ class TestOutputInterface():
                                    mock_question_key,
                                    resp_for_overlap_dim):
 
-        exp_r = [(1, 'QC3', 2), (2, None, 3)]
+        exp_r = [(1, 'QC3', 2), (2, None, None)]
         exp_c = ['Entry Id', 'dimension', 'value']
         exp_df = pd.DataFrame.from_records(
             exp_r, columns=exp_c).set_index('Entry Id')

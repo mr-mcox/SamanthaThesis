@@ -163,6 +163,7 @@ class Processor(object):
 
         rv = self.response_values
         resp = rv.ix[rv.question_code == q_code].value
+        resp[resp == 0] = None
 
         return pd.DataFrame({'dimension': dims, 'value': resp})
 
