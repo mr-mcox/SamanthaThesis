@@ -17,6 +17,7 @@ class SurveyPlot(object):
         # Set default display flags
         self.display_overall = True
         self.display_cumulative = True
+        self.display_range = True
 
     def draw(self):
         data = self.data_formatted
@@ -31,12 +32,12 @@ class SurveyPlot(object):
 
         primary_color = '#3182bd'
         overall_color = '#969696'
-        range_color = '#cccccc'
+        range_color = '#E6E6E6'
 
         overall_f = data['overall_f']
 
         # Overall bar positions to be used on each plot
-        m_bar_x = [(x+1) + (overall_bar_width / 2)
+        m_bar_x = [(x+1) + (overall_bar_width / 2) + (prim_bar_width / 2)
                    for x in range(len(overall_f))]
         m_bar_y = [h / 2 for h in overall_f]
         for dim in data['dimensions']:
@@ -52,16 +53,26 @@ class SurveyPlot(object):
             dim_f = dim['freq']
 
             # Compute positions for bars
-            prim_bar_offset = 0
             bar_y = [h / 2 for h in dim_f]
 
             # Compute position for line
             line_x = [0] + levels
 
+            # Compute positions for range
+            range_x = line_x + list(reversed(line_x))
+            range_y = [0] + dim['overall_range_low'] + \
+                list(reversed([0] + dim['overall_range_high']))
+
+            # Render range
+            if (self.display_range and
+                    self.display_overall and
+                    self.display_cumulative):
+                p.patches(xs=[range_x],
+                          ys=[range_y],
+                          color=range_color)
+
             # Render overall bars and offset for primary
             if self.display_overall:
-                prim_bar_offset = 1 - (prim_bar_width / 2)
-
                 if self.display_cumulative:
                     line_y = [0] + data['overall_cum']
                     p.line(line_x, line_y, color=overall_color)
@@ -73,7 +84,7 @@ class SurveyPlot(object):
                 line_y = [0] + dim['cum']
                 p.line(line_x, line_y, color=primary_color)
 
-            bar_x = [x + prim_bar_offset for x in range(len(dim_f))]
+            bar_x = [(x+1) for x in range(len(dim_f))]
 
             # Render primary bars
             p.rect(bar_x, bar_y, color=primary_color,
