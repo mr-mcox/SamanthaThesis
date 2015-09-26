@@ -10,10 +10,11 @@ class SurveyPlot(object):
     def __init__(self, data, title):
         self.data = data
         self.title = title
+        self.data_formatted = self.data_for_visualization()
         self.location = os.getcwd()
 
     def draw(self):
-        data = self.data
+        data = self.data_formatted
 
         output_file(os.path.join(self.location, data['title'] + '.html'))
         levels = data['levels']
@@ -47,6 +48,8 @@ class SurveyPlot(object):
         freq = list()
         agg = df.groupby('value').size()
         pop_size = len(df)
+        if pop_size == 0:
+            return 0
         for level in levels:
             num_in_group = 0
             if level in agg.index:
@@ -57,13 +60,14 @@ class SurveyPlot(object):
 
     def data_for_visualization(self):
         df = self.data
+        df = df[df.dimension.notnull() & df.value.notnull()]
         output = dict()
 
         # Set title
         output['title'] = self.title
 
         # Set levels
-        levels = df.value.unique().tolist()
+        levels = sorted(df.value.unique().tolist())
         level_s = [str(v) for v in levels]
         output['levels'] = level_s
 
