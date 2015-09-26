@@ -63,6 +63,7 @@ class Processor(object):
             for code in dim_codes:
                 code_mask = (dim_values.dimension_code == code)
                 values = dim_values.loc[code_mask, 'value']
+                values = values[values.notnull()]
                 if self.dimension_key.get_value(code, 'type') == 'overlapping':
                     indicator_v = pd.Series(index=values.index)
                     indicator_v.loc[values.notnull() & (values != 0)] = code

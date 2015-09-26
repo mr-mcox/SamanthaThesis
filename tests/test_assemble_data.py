@@ -37,6 +37,22 @@ def mock_resp():
 
 
 @pytest.fixture(scope='module')
+def mock_resp_with_blank_dim():
+    resp_c = ['Entry Id', 'Q1']
+    resp_r = [
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
+        (6, 6),
+        (7, None),
+    ]
+
+    return pd.DataFrame.from_records(resp_r, columns=resp_c)
+
+
+@pytest.fixture(scope='module')
 def mock_complex_dim_question_key():
     question_r = [
         ("Q1", "QC1", "G1", "dimension"),
@@ -145,6 +161,28 @@ class TestDimensionFormat():
 
         monkeypatch.setattr(np, 'percentile', mock_percentile)
         p = Processor(question_key=mock_question_key, survey_results=mock_resp)
+
+        assert_frame_subset(p.dimension_values, exp_df)
+
+    def test_dim_bins_with_blank_dim(self,
+                                     mock_question_key,
+                                     mock_resp_with_blank_dim,
+                                     monkeypatch):
+        exp_c = ['Entry Id', 'dimension_code', 'bin']
+        exp_r = [
+            (1, 'QC1', "1.0-2.0"),
+            (2, 'QC1', "2.0-3.0"),
+            (3, 'QC1', "3.0-4.0"),
+            (4, 'QC1', "4.0-5.0"),
+            (5, 'QC1', "5.0-6.0"),
+            (6, 'QC1', "5.0-6.0"),
+            (7, 'QC1', None),
+        ]
+        exp_df = pd.DataFrame.from_records(
+            exp_r, columns=exp_c).set_index('Entry Id').convert_objects()
+
+        p = Processor(question_key=mock_question_key,
+                      survey_results=mock_resp_with_blank_dim)
 
         assert_frame_subset(p.dimension_values, exp_df)
 
