@@ -68,6 +68,14 @@ class SurveyPlot(object):
 
         return freq
 
+    def cumulative_frequency(self, freq):
+        cum = list()
+        total_freq = 0
+        for f in freq:
+            total_freq = total_freq + f
+            cum.append(total_freq)
+        return cum
+
     def data_for_visualization(self):
         df = self.data
         df = df[df.dimension.notnull() & df.value.notnull()]
@@ -81,15 +89,23 @@ class SurveyPlot(object):
         level_s = [str(v) for v in levels]
         output['levels'] = level_s
 
-        # Compute overall freq
-        output['overall_f'] = self.freq_from_df(df, levels)
+        # Compute overall freq and cumulative frequency
+        overall_f = self.freq_from_df(df, levels)
+        overall_cum = self.cumulative_frequency(overall_f)
+        output['overall_f'] = overall_f
+        output['overall_cum'] = overall_cum
 
         # Compute dimensions
         dimensions = list()
         for dim in df.dimension.unique().tolist():
             df_d = df[df.dimension == dim]
+            freq = self.freq_from_df(df_d, levels)
+            cum = self.cumulative_frequency(freq)
             dimensions.append(
-                {'name': dim, 'freq': self.freq_from_df(df_d, levels)})
+                {'name': dim,
+                 'freq': freq,
+                 'cum': cum,
+                 })
         output['dimensions'] = dimensions
 
         return output
