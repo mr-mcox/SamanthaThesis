@@ -13,6 +13,6 @@
  ✔ Remove nans when computing bins @done (15-09-26 09:12)
  ✔ Visualization created from frame (move data processing) @done (15-09-26 10:54)
  ✔ Order levels when visualizing @done (15-09-26 11:22)
+ ✔ Make plots smaller and horizontal @done (15-09-26 11:31)
+ ☐ 0 value is null
  ☐ Order factors when visualizing
- ☐ Make plots smaller and horizontal
- ☐ Name of plot has both dimension and question

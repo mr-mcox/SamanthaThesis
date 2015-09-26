@@ -1,4 +1,4 @@
-from bokeh.plotting import figure, show, output_file, vplot
+from bokeh.plotting import figure, show, output_file, hplot
 from bokeh.models import NumeralTickFormatter
 import os
 
@@ -25,8 +25,8 @@ class SurveyPlot(object):
         m_bar_x = [(x+1) + (comp_bar_width / 2) for x in range(len(overall_f))]
         m_bar_y = [h / 2 for h in overall_f]
         for dim in data['dimensions']:
-            p = figure(plot_width=400,
-                       plot_height=400,
+            p = figure(plot_width=200,
+                       plot_height=200,
                        x_range=levels,
                        y_range=[0, 1],
                        title=dim['name'],
@@ -42,7 +42,7 @@ class SurveyPlot(object):
             p.rect(m_bar_x, m_bar_y, color='#d9d9d9',
                    width=0.2, height=overall_f)
             plots.append(p)
-        show(vplot(*plots))
+        show(hplot(*plots))
 
     def freq_from_df(self, df, levels):
         freq = list()
@@ -67,7 +67,7 @@ class SurveyPlot(object):
         output['title'] = self.title
 
         # Set levels
-        levels = sorted(df.value.unique().tolist())
+        levels = sorted(df.value.unique().tolist(), reverse=True)
         level_s = [str(v) for v in levels]
         output['levels'] = level_s
 
