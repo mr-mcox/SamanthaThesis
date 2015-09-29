@@ -201,7 +201,7 @@ class GroupAnalysis(object):
 
         qs = list()
         if d_group is not None:
-            qs = self.processor.questions_in_group(d_group)
+            qs = self.processor.questions_in_group(q_group)
         else:
             qs = self.processor.all_questions()
 
