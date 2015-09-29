@@ -73,11 +73,12 @@ class Processor(object):
                     indicator_v.loc[~mask] = "not_" + str(code)
                     dim_values.loc[code_mask, 'bin'] = indicator_v
 
-                    #Add dimension as number
+                    # Add dimension as number
                     indicator_vn = pd.Series(index=values.index)
                     indicator_vn.loc[mask] = 1
                     indicator_vn.loc[~mask] = 0
-                    dim_values.loc[code_mask, 'dimension_as_num'] = indicator_vn
+                    dim_values.loc[
+                        code_mask, 'dimension_as_num'] = indicator_vn
                 else:
                     values = values[values.notnull()]
                     str_is_num = values.map(
@@ -183,8 +184,9 @@ class Processor(object):
 
     def dimension_value_frame(self, dim_code, q_code):
         dv = self.dimension_values
-        dims = dv.ix[dv.dimension_code == dim_code, ['bin', 'dimension_as_num']]
-        dims.rename(columns={'bin':'dimension'},inplace=True)
+        dims = dv.ix[
+            dv.dimension_code == dim_code, ['bin', 'dimension_as_num']]
+        dims.rename(columns={'bin': 'dimension'}, inplace=True)
 
         rv = self.response_values
         resp = rv.ix[rv.question_code == q_code].value
