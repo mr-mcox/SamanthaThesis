@@ -191,7 +191,10 @@ class GroupAnalysis(object):
         self.processor = processor
         self.alpha = 0.05
 
-    def significant_relationships_list(self, d_group=None, q_group=None):
+    def significant_relationships_list(self,
+                                       d_group=None,
+                                       q_group=None,
+                                       test_type='kruskalwallis'):
         alpha = self.alpha
         dims = list()
         if d_group is not None:
@@ -200,7 +203,7 @@ class GroupAnalysis(object):
             dims = self.processor.all_dimensions()
 
         qs = list()
-        if d_group is not None:
+        if q_group is not None:
             qs = self.processor.questions_in_group(q_group)
         else:
             qs = self.processor.all_questions()
@@ -215,7 +218,7 @@ class GroupAnalysis(object):
         for combo in dim_q_combos:
             a = Analyzer(processor=self.processor)
             (d, q) = combo
-            p_val = a.significance_of_relationship(d, q)
+            p_val = a.significance_of_relationship(d, q, test_type)
             analysis_results.append((d, q, p_val))
 
         cols = ['dimension', 'question', 'p_value']
@@ -225,6 +228,7 @@ class GroupAnalysis(object):
         df['comp_p'] = [(x + 1) * alpha / len(df) for x in range(len(df))]
         df['sig'] = False
         df.loc[df.p_value <= df.comp_p, 'sig'] = True
+        df['test_type'] = test_type
 
         df.set_index(['dimension', 'question'], inplace=True)
 
@@ -238,7 +242,7 @@ class Analyzer(object):
     def __init__(self, processor=None):
         self.processor = processor
 
-    def significance_of_relationship(self, dimension, question):
+    def significance_of_relationship(self, dimension, question, test_type):
         frame = self.processor.dimension_value_frame(dimension, question)
         frame = frame[frame.dimension.notnull() & frame.value.notnull()]
         factors = frame.dimension.unique().tolist()

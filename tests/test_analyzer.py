@@ -30,5 +30,5 @@ def test_signficance_of_relationship(monkeypatch):
 
     p = Processor()
     a = Analyzer(processor=p)
-    p_val = a.significance_of_relationship('D1', 'Q1')
+    p_val = a.significance_of_relationship('D1', 'Q1', 'kruskalwallis')
     assert p_val == exp

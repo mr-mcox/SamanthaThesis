@@ -1,7 +1,10 @@
-Full analyses:
- ✔ Use all dimension or question codes if one or both are not provided @done (15-09-28 19:57)
+Linear regression:
+  ✔ When significant relationship list called with test type, it calls SoR with test and includes test in results @done (15-09-29 11:14)
+  ☐ Significance of relationship chooses test based on input and passes appropriate data
+  ☐ Dimension values includes dimension_as_number
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Use all dimension or question codes if one or both are not provided @done (15-09-28 19:57) @project(Full analyses)
  ✔ Ability to change # bins @done (15-09-26 16:35) @project(Create more sophisticated visualization of data)
  ✔ Optionally display the expected range around each line @done (15-09-26 15:52) @project(Create more sophisticated visualization of data)
  ✔ Compute binomial range for overall based on size of group @done (15-09-26 15:32) @project(Create more sophisticated visualization of data)
