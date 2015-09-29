@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.stats.mstats import kruskalwallis
+from scipy.stats import linregress
 import re
 import pdb
 
@@ -245,8 +246,14 @@ class Analyzer(object):
     def significance_of_relationship(self, dimension, question, test_type):
         frame = self.processor.dimension_value_frame(dimension, question)
         frame = frame[frame.dimension.notnull() & frame.value.notnull()]
-        factors = frame.dimension.unique().tolist()
 
+        if test_type == 'kruskalwallis':
+            return self.sig_relationship_kruskalwallis(frame)
+        if test_type == 'linearmodel':
+            return self.sig_relationship_linear_model(frame)
+
+    def sig_relationship_kruskalwallis(self, frame):
+        factors = frame.dimension.unique().tolist()
         data_sets = list()
         for factor in factors:
             data_sets.append(frame.ix[frame.dimension == factor, 'value'])
@@ -255,3 +262,6 @@ class Analyzer(object):
             return 1
         else:
             return kruskalwallis(*data_sets)[1]
+
+    def sig_relationship_linear_model(self, frame):
+        return linregress(frame['dimension_as_num'], frame['value'])[3]
