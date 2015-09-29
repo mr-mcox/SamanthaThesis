@@ -311,8 +311,8 @@ class TestOutputInterface():
                                    mock_question_key,
                                    resp_for_overlap_dim):
 
-        exp_r = [(1, 'QC3', 2), (2, 'not_QC3', None)]
-        exp_c = ['Entry Id', 'dimension', 'value']
+        exp_r = [(1, 'QC3', 2, 1.0), (2, 'not_QC3', None, 0.0)]
+        exp_c = ['Entry Id', 'dimension', 'value', 'dimension_as_num']
         exp_df = pd.DataFrame.from_records(
             exp_r, columns=exp_c).set_index('Entry Id')
 

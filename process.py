@@ -72,6 +72,12 @@ class Processor(object):
                     indicator_v.loc[mask] = code
                     indicator_v.loc[~mask] = "not_" + str(code)
                     dim_values.loc[code_mask, 'bin'] = indicator_v
+
+                    #Add dimension as number
+                    indicator_vn = pd.Series(index=values.index)
+                    indicator_vn.loc[mask] = 1
+                    indicator_vn.loc[~mask] = 0
+                    dim_values.loc[code_mask, 'dimension_as_num'] = indicator_vn
                 else:
                     values = values[values.notnull()]
                     str_is_num = values.map(
@@ -86,10 +92,12 @@ class Processor(object):
                             np.digitize(values, ptile), index=values.index)
                         dim_values.loc[code_mask, 'bin'] = bin_nums.apply(
                             bin_text, ptiles=ptile)
+                        dim_values.loc[code_mask, 'dimension_as_num'] = values
                     else:
                         dim_values.loc[code_mask, 'bin'] = values
+                        dim_values.loc[code_mask, 'dimension_as_num'] = None
 
-            cols = ['dimension_code', 'value', 'bin']
+            cols = ['dimension_code', 'value', 'bin', 'dimension_as_num']
             self._dimension_values = dim_values.ix[:, cols]
         return self._dimension_values
 
@@ -175,13 +183,14 @@ class Processor(object):
 
     def dimension_value_frame(self, dim_code, q_code):
         dv = self.dimension_values
-        dims = dv.ix[dv.dimension_code == dim_code].bin
+        dims = dv.ix[dv.dimension_code == dim_code, ['bin', 'dimension_as_num']]
+        dims.rename(columns={'bin':'dimension'},inplace=True)
 
         rv = self.response_values
         resp = rv.ix[rv.question_code == q_code].value
         resp[resp == 0] = None
 
-        return pd.DataFrame({'dimension': dims, 'value': resp})
+        return dims.join(resp)
 
 
 class GroupAnalysis(object):
