@@ -234,7 +234,7 @@ class TestDimensionFormat():
             ['Entry Id', 'dimension_code'])
 
         assert res.loc[(1, 'QC3'), 'bin'] == 'QC3'
-        assert np.isnan(res.loc[(2, 'QC3'), 'bin'])
+        assert res.loc[(2, 'QC3'), 'bin'] == 'not_QC3'
 
 
 class TestResponseFormat():
@@ -295,11 +295,23 @@ class TestOutputInterface():
         p = Processor(question_key=mock_question_key)
         assert p.questions_in_group('G2') == exp
 
+    def test_all_dimensions(self, mock_question_key):
+        exp = ['QC1', 'QC3', 'QC4']
+
+        p = Processor(question_key=mock_question_key)
+        assert p.all_dimensions() == exp
+
+    def test_all_questions(self, mock_question_key):
+        exp = ['QC2']
+
+        p = Processor(question_key=mock_question_key)
+        assert p.all_questions() == exp
+
     def test_dimension_value_frame(self,
                                    mock_question_key,
                                    resp_for_overlap_dim):
 
-        exp_r = [(1, 'QC3', 2), (2, None, None)]
+        exp_r = [(1, 'QC3', 2), (2, 'not_QC3', None)]
         exp_c = ['Entry Id', 'dimension', 'value']
         exp_df = pd.DataFrame.from_records(
             exp_r, columns=exp_c).set_index('Entry Id')

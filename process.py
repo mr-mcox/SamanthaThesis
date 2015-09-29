@@ -64,12 +64,15 @@ class Processor(object):
             for code in dim_codes:
                 code_mask = (dim_values.dimension_code == code)
                 values = dim_values.loc[code_mask, 'value']
-                values = values[values.notnull()]
+
                 if self.dimension_key.get_value(code, 'type') == 'overlapping':
                     indicator_v = pd.Series(index=values.index)
-                    indicator_v.loc[values.notnull() & (values != 0)] = code
+                    mask = (values.notnull() & (values != 0))
+                    indicator_v.loc[mask] = code
+                    indicator_v.loc[~mask] = "not_" + str(code)
                     dim_values.loc[code_mask, 'bin'] = indicator_v
                 else:
+                    values = values[values.notnull()]
                     str_is_num = values.map(
                         lambda s: re.search(str(s), "[\d\.]+") is None)
                     if (str_is_num | values.isnull()).all():
@@ -161,6 +164,14 @@ class Processor(object):
         qk = self.q_key
         return qk[qk.group == group].index.tolist()
 
+    def all_dimensions(self):
+        dk = self.dimension_key
+        return dk.index.tolist()
+
+    def all_questions(self):
+        qk = self.q_key
+        return qk.index.tolist()
+
     def dimension_value_frame(self, dim_code, q_code):
         dv = self.dimension_values
         dims = dv.ix[dv.dimension_code == dim_code].bin
@@ -180,10 +191,19 @@ class GroupAnalysis(object):
         self.processor = processor
         self.alpha = 0.05
 
-    def significant_relationships_list(self, d_group, q_group):
+    def significant_relationships_list(self, d_group=None, q_group=None):
         alpha = self.alpha
-        dims = self.processor.dimensions_in_group(d_group)
-        qs = self.processor.questions_in_group(q_group)
+        dims = list()
+        if d_group is not None:
+            dims = self.processor.dimensions_in_group(d_group)
+        else:
+            dims = self.processor.all_dimensions()
+
+        qs = list()
+        if d_group is not None:
+            qs = self.processor.questions_in_group(d_group)
+        else:
+            qs = self.processor.all_questions()
 
         dim_q_combos = list()
         for d in dims:
@@ -220,10 +240,14 @@ class Analyzer(object):
 
     def significance_of_relationship(self, dimension, question):
         frame = self.processor.dimension_value_frame(dimension, question)
+        frame = frame[frame.dimension.notnull() & frame.value.notnull()]
         factors = frame.dimension.unique().tolist()
 
         data_sets = list()
         for factor in factors:
             data_sets.append(frame.ix[frame.dimension == factor, 'value'])
 
-        return kruskalwallis(*data_sets)[1]
+        if len(data_sets) < 2:
+            return 1
+        else:
+            return kruskalwallis(*data_sets)[1]

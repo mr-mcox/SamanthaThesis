@@ -1,14 +1,15 @@
-Create more sophisticated visualization of data:
-  ✔ Turn on and off comparision to larger group @done (15-09-26 14:47)
-  ✔ Compute cumulative values for each level @done (15-09-26 14:54)
-  ✔ Compute cumulative values for all groups @done (15-09-26 14:56)
-  ✔ Display cumluative values as line (optionally) @done (15-09-26 15:14)
-  ✔ Display of overall cumulative values with selection of larger group @done (15-09-26 15:14)
-  ✔ Compute binomial range for overall based on size of group @done (15-09-26 15:32)
-  ✔ Optionally display the expected range around each line @done (15-09-26 15:52)
-  ✔ Ability to change # bins @done (15-09-26 16:35)
+Full analyses:
+ ✔ Use all dimension or question codes if one or both are not provided @done (15-09-28 19:57)
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Ability to change # bins @done (15-09-26 16:35) @project(Create more sophisticated visualization of data)
+ ✔ Optionally display the expected range around each line @done (15-09-26 15:52) @project(Create more sophisticated visualization of data)
+ ✔ Compute binomial range for overall based on size of group @done (15-09-26 15:32) @project(Create more sophisticated visualization of data)
+ ✔ Display of overall cumulative values with selection of larger group @done (15-09-26 15:14) @project(Create more sophisticated visualization of data)
+ ✔ Display cumluative values as line (optionally) @done (15-09-26 15:14) @project(Create more sophisticated visualization of data)
+ ✔ Compute cumulative values for all groups @done (15-09-26 14:56) @project(Create more sophisticated visualization of data)
+ ✔ Compute cumulative values for each level @done (15-09-26 14:54) @project(Create more sophisticated visualization of data)
+ ✔ Turn on and off comparision to larger group @done (15-09-26 14:47) @project(Create more sophisticated visualization of data)
  ✔ 0 value is null @done (15-09-26 11:35)
  ✔ Make plots smaller and horizontal @done (15-09-26 11:31)
  ✔ Order levels when visualizing @done (15-09-26 11:22)
