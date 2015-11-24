@@ -1,9 +1,11 @@
-Linear regression:
-  ✔ When significant relationship list called with test type, it calls SoR with test and includes test in results @done (15-09-29 11:14)
-  ✔ Significance of relationship chooses test based on input and passes appropriate data @done (15-09-29 11:27)
-  ✔ Dimension values includes dimension_as_number @done (15-09-29 11:44)
+Refactoring:
+  ☐ Simplify dimension_values
+  ☐ Simplify significant_relationship_list
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Dimension values includes dimension_as_number @done (15-09-29 11:44) @project(Linear regression)
+ ✔ Significance of relationship chooses test based on input and passes appropriate data @done (15-09-29 11:27) @project(Linear regression)
+ ✔ When significant relationship list called with test type, it calls SoR with test and includes test in results @done (15-09-29 11:14) @project(Linear regression)
  ✔ Use all dimension or question codes if one or both are not provided @done (15-09-28 19:57) @project(Full analyses)
  ✔ Ability to change # bins @done (15-09-26 16:35) @project(Create more sophisticated visualization of data)
  ✔ Optionally display the expected range around each line @done (15-09-26 15:52) @project(Create more sophisticated visualization of data)

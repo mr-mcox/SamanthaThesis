@@ -8,13 +8,13 @@ def input_data_frame():
     mock_c = ['Entry Id', 'dimension', 'value']
     mock_r = [
         (1, 'D1', 2),
-        (2, 'D1', 1),
+        (2, 'D1', 3),
         (3, 'D1', 2),
-        (4, 'D1', 3),
-        (5, 'D2', 1),
-        (6, 'D2', 1),
+        (4, 'D1', 1),
+        (5, 'D2', 3),
+        (6, 'D2', 3),
         (7, 'D2', 2),
-        (8, 'D2', 3),
+        (8, 'D2', 1),
     ]
     df = pd.DataFrame().from_records(
         mock_r, columns=mock_c).set_index('Entry Id')
@@ -26,14 +26,14 @@ def input_data_frame_with_null():
     mock_c = ['Entry Id', 'dimension', 'value']
     mock_r = [
         (1, 'D1', 2),
-        (2, 'D1', 1),
+        (2, 'D1', 3),
         (3, 'D1', 2),
-        (4, 'D1', 3),
-        (5, 'D2', 1),
-        (6, 'D2', 1),
+        (4, 'D1', 1),
+        (5, 'D2', 3),
+        (6, 'D2', 3),
         (7, 'D2', 2),
-        (8, 'D2', 3),
-        (9, None, 3),
+        (8, 'D2', 1),
+        (9, None, 1),
         (10, 'D2', None),
     ]
     df = pd.DataFrame().from_records(
@@ -44,7 +44,7 @@ def input_data_frame_with_null():
 def test_data_for_visualizer(monkeypatch, input_data_frame):
 
     exp = {'title': 'QC2',
-           'levels': ['3', '2', '1'],
+           'levels': ['1', '2', '3'],
            'overall_f': [.25, .375, 0.375],
            'overall_cum': [.25, .625, 1],
            'dimensions': [
@@ -69,7 +69,7 @@ def test_data_for_visualizer(monkeypatch, input_data_frame):
 def test_viz_data_with_null(monkeypatch, input_data_frame_with_null):
 
     exp = {'title': 'QC2',
-           'levels': ['3.0', '2.0', '1.0'],
+           'levels': ['1.0', '2.0', '3.0'],
            'overall_f': [.25, .375, 0.375],
            'overall_cum': [.25, .625, 1],
            'dimensions': [

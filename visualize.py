@@ -19,7 +19,7 @@ class SurveyPlot(object):
         self.display_cumulative = True
         self.display_range = True
 
-    def draw(self):
+    def draw(self, plot_size=200):
         data = self.data_formatted
 
         output_file(os.path.join(self.location, data['title'] + '.html'))
@@ -43,8 +43,8 @@ class SurveyPlot(object):
         for dim in data['dimensions']:
 
             # Set up plot
-            p = figure(plot_width=200,
-                       plot_height=200,
+            p = figure(plot_width=plot_size,
+                       plot_height=plot_size,
                        x_range=levels,
                        y_range=[0, 1],
                        title=dim['name'],
@@ -124,7 +124,7 @@ class SurveyPlot(object):
         output['title'] = self.title
 
         # Set levels
-        levels = sorted(df.value.unique().tolist(), reverse=True)
+        levels = sorted(df.value.unique().tolist())
         level_s = [str(v) for v in levels]
         output['levels'] = level_s
 
